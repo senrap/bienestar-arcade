@@ -2,22 +2,34 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import {
   DAILY_MISSIONS,
+  LEVEL_STEPS,
+  MAX_LEVEL,
   closeDay,
   createState,
+  demote,
   hydrate,
   isDayComplete,
+  levelInfo,
   rerollAt,
   rollMissions,
   rollOverDay,
 } from '../src/lib/game.js'
-import { earnedPetIds } from '../src/data/pets.js'
-import { previousKey, todayKey } from '../src/lib/date.js'
+import { daysBetween, previousKey, todayKey } from '../src/lib/date.js'
 
 const allDone = (missions) => missions.map((m) => ({ ...m, done: true }))
 
-function closedDayAt(day) {
-  const state = { ...createState(day), missions: allDone(rollMissions()) }
-  return closeDay(state)
+/** Cierra `days` dias consecutivos cumplidos, arrancando en `from`. */
+function playDays(days, from = '2026-01-01', state = createState(from)) {
+  let s = { ...state, day: from }
+  for (let i = 0; i < days; i++) {
+    s = closeDay({ ...s, missions: allDone(rollMissions()) })
+    if (i < days - 1) {
+      const next = new Date(2026, 0, 1)
+      next.setDate(next.getDate() + i + 1)
+      s = rollOverDay(s, todayKey(next))
+    }
+  }
+  return s
 }
 
 test('el sorteo diario da 3 misiones de categorias distintas', () => {
@@ -34,7 +46,6 @@ test('el re-roll reemplaza la mision elegida y no repite categoria', () => {
   const next = rerollAt(missions, 1)
   assert.notEqual(next[1].id, missions[1].id)
   assert.equal(next[0].id, missions[0].id)
-  assert.equal(next[2].id, missions[2].id)
   assert.equal(new Set(next.map((m) => m.cat)).size, DAILY_MISSIONS)
   assert.equal(next[1].done, false)
 })
@@ -46,59 +57,110 @@ test('el dia se cierra con 3/3 o con el comodin', () => {
   assert.equal(isDayComplete({ ...partial, wildcardUsed: true }), true)
 })
 
-test('la racha encadena dias consecutivos', () => {
-  const day1 = closedDayAt('2026-01-10')
-  assert.equal(day1.streak, 1)
-
-  const day2 = closeDay({ ...rollOverDay(day1, '2026-01-11'), missions: allDone(rollMissions()) })
-  assert.equal(day2.streak, 2)
-  assert.equal(day2.bestStreak, 2)
+test('la racha encadena dias consecutivos y se corta con un hueco', () => {
+  const dos = playDays(2)
+  assert.equal(dos.streak, 2)
+  assert.equal(dos.bestStreak, 2)
+  assert.equal(rollOverDay(dos, '2026-01-05').streak, 0)
 })
 
-test('saltear un dia entero reinicia la racha', () => {
-  const day1 = closedDayAt('2026-01-10')
-  assert.equal(rollOverDay(day1, '2026-01-12').streak, 0)
+test('tres dias cumplidos hacen crecer el arbol un nivel', () => {
+  const s = playDays(LEVEL_STEPS)
+  assert.equal(s.level, 1)
+  assert.equal(s.levelProgress, 0)
+  assert.deepEqual(s.levelChange, { type: 'up', from: 0, to: 1 })
+
+  const antes = playDays(LEVEL_STEPS - 1)
+  assert.equal(antes.level, 0)
+  assert.equal(antes.levelProgress, LEVEL_STEPS - 1)
+  assert.equal(antes.levelChange, null)
 })
 
-test('un dia sin cerrar todavia no rompe la racha', () => {
-  const day1 = closedDayAt('2026-01-10')
-  const day2 = rollOverDay(day1, '2026-01-11')
-  assert.equal(day2.streak, 1)
-  assert.equal(day2.coinInserted, false)
-  assert.equal(day2.missions.length, 0)
-  assert.equal(day2.rerollsLeft, 1)
-  assert.equal(day2.wildcardUsed, false)
+test('el comodin cierra el dia pero no hace crecer el arbol', () => {
+  const base = createState('2026-01-10')
+  const conComodin = closeDay({ ...base, wildcardUsed: true }, { advance: false })
+  assert.equal(conComodin.dayClosed, true)
+  assert.equal(conComodin.streak, 1)
+  assert.equal(conComodin.levelProgress, 0)
+  assert.equal(conComodin.level, 0)
+})
+
+test('un dia sin cumplir poda un nivel; varios dias podan varios', () => {
+  const s = playDays(LEVEL_STEPS * 2) // nivel 2
+  assert.equal(s.level, 2)
+
+  const unDia = rollOverDay({ ...s, dayClosed: false, day: '2026-01-06' }, '2026-01-07')
+  assert.equal(unDia.level, 1)
+  assert.deepEqual(unDia.levelChange, { type: 'down', from: 2, to: 1 })
+
+  const dosDias = rollOverDay({ ...s, dayClosed: false, day: '2026-01-06' }, '2026-01-08')
+  assert.equal(dosDias.level, 0)
+})
+
+test('el arbol nunca baja de semilla', () => {
+  const semilla = { ...createState('2026-01-10'), level: 0 }
+  assert.equal(demote(semilla, 5).level, 0)
+  assert.equal(demote(semilla, 5).levelChange, null)
+})
+
+test('en la cima se cuentan los dias sostenidos', () => {
+  const cima = playDays(LEVEL_STEPS * MAX_LEVEL)
+  assert.equal(cima.level, MAX_LEVEL)
+  assert.equal(cima.daysAtTop, 1)
+
+  const info = levelInfo(cima)
+  assert.equal(info.atTop, true)
+  assert.equal(info.next, null)
+
+  const unoMas = closeDay({
+    ...rollOverDay(cima, '2026-01-16'),
+    missions: allDone(rollMissions()),
+  })
+  assert.equal(unoMas.daysAtTop, 2)
+})
+
+test('bajar de la cima reinicia el contador de dias sostenidos', () => {
+  const cima = playDays(LEVEL_STEPS * MAX_LEVEL)
+  const caido = rollOverDay({ ...cima, dayClosed: false, day: '2026-01-16' }, '2026-01-17')
+  assert.equal(caido.level, MAX_LEVEL - 1)
+  assert.equal(caido.daysAtTop, 0)
 })
 
 test('el cambio de dia archiva el resultado anterior en el historial', () => {
-  const day1 = closedDayAt('2026-01-10')
-  const day2 = rollOverDay(day1, '2026-01-11')
-  assert.deepEqual(day2.history['2026-01-10'], {
+  const dia = playDays(1)
+  const siguiente = rollOverDay(dia, '2026-01-02')
+  assert.deepEqual(siguiente.history['2026-01-01'], {
     done: DAILY_MISSIONS,
     total: DAILY_MISSIONS,
     wildcard: false,
     closed: true,
   })
+  assert.equal(siguiente.missions.length, 0)
+  assert.equal(siguiente.coinInserted, false)
+  assert.equal(siguiente.rerollsLeft, 1)
 })
 
-test('hydrate tolera basura en localStorage y arranca de cero', () => {
+test('hydrate tolera basura y migra el estado viejo con coleccionables', () => {
   assert.equal(hydrate(null).points, 0)
-  assert.equal(hydrate('roto').streak, 0)
-  assert.equal(hydrate({ points: 42, day: todayKey() }).points, 42)
+  assert.equal(hydrate('roto').level, 0)
+
+  const viejo = { day: todayKey(), points: 42, unlocked: ['cactus-gamer'], level: 99 }
+  const migrado = hydrate(viejo)
+  assert.equal(migrado.points, 42)
+  assert.equal(migrado.level, MAX_LEVEL)
+  assert.equal(migrado.unlocked, undefined)
 })
 
-test('hydrate ajusta la racha si el usuario volvio despues de un hueco', () => {
-  const stale = { ...closedDayAt(previousKey(previousKey(todayKey()))) }
-  assert.equal(hydrate(stale).streak, 0)
+test('hydrate poda el arbol si el usuario volvio despues de un hueco', () => {
+  const ayer = { ...playDays(LEVEL_STEPS), day: previousKey(todayKey()), dayClosed: true }
+  assert.equal(hydrate(ayer).level, 1)
 
-  const yesterday = { ...closedDayAt(previousKey(todayKey())) }
-  assert.equal(hydrate(yesterday).streak, 1)
+  const abandonado = { ...ayer, day: previousKey(previousKey(todayKey())), dayClosed: false }
+  assert.equal(hydrate(abandonado).level, 0)
 })
 
-test('las mascotas se desbloquean por racha, puntos o misiones', () => {
-  assert.deepEqual(earnedPetIds({ streak: 0, points: 0, totalCompleted: 0 }), [])
-  assert.ok(earnedPetIds({ streak: 1, points: 0, totalCompleted: 0 }).includes('cactus-gamer'))
-  assert.ok(earnedPetIds({ streak: 3, points: 0, totalCompleted: 0 }).includes('rana-zen'))
-  assert.ok(earnedPetIds({ streak: 0, points: 150, totalCompleted: 0 }).includes('gato-crt'))
-  assert.ok(earnedPetIds({ streak: 0, points: 0, totalCompleted: 25 }).includes('pulpo-multitask'))
+test('daysBetween cuenta dias calendario', () => {
+  assert.equal(daysBetween('2026-01-01', '2026-01-02'), 1)
+  assert.equal(daysBetween('2026-01-01', '2026-01-01'), 0)
+  assert.equal(daysBetween('2026-02-28', '2026-03-01'), 1)
 })

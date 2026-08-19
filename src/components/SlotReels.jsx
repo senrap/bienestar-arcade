@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
-import { CATEGORY_LIST } from '../data/categories.js'
+import PixelSprite from './PixelSprite.jsx'
+import { CATEGORIES, CATEGORY_LIST } from '../data/categories.js'
 import { play } from '../lib/audio.js'
 
-const SPIN_MS = 1500
-const TICK_MS = 90
+const TICK_MS = 100
+const FIRST_STOP = 550
+const STEP = 280
 
 /**
- * Los tres rodillos girando despues de la moneda. Es puro teatro: el sorteo
- * real ya ocurrio en el reducer, esto le da el tiempo de suspenso.
+ * Los tres rodillos. Es puro teatro —el sorteo ya ocurrio en el reducer—
+ * pero es el guiño arcade que le da sentido a la moneda.
  */
 export default function SlotReels({ missions, onDone }) {
   const [frame, setFrame] = useState(0)
@@ -21,17 +23,13 @@ export default function SlotReels({ missions, onDone }) {
       play('reel', 0)
     }, TICK_MS)
 
-    // Los rodillos frenan de a uno, como corresponde.
     const stops = [0, 1, 2].map((i) =>
-      setTimeout(
-        () => {
-          setStopped(i + 1)
-          play('select', 10)
-        },
-        SPIN_MS * 0.45 + i * 320,
-      ),
+      setTimeout(() => {
+        setStopped(i + 1)
+        play('select', 10)
+      }, FIRST_STOP + i * STEP),
     )
-    const end = setTimeout(() => doneRef.current(), SPIN_MS * 0.45 + 3 * 320 + 420)
+    const end = setTimeout(() => doneRef.current(), FIRST_STOP + 3 * STEP + 320)
 
     return () => {
       clearInterval(spin)
@@ -41,33 +39,37 @@ export default function SlotReels({ missions, onDone }) {
   }, [])
 
   return (
-    <div className="flex flex-col items-center py-10 text-center">
-      <p className="font-pixel text-[11px] text-neon-yellow text-glow">SORTEANDO MISIONES...</p>
+    <section className="panel flex flex-col items-center px-5 py-12">
+      <p className="eyebrow text-muted">Sorteando</p>
 
-      <div className="mt-8 flex gap-2 sm:gap-4">
+      <div className="mt-7 flex gap-3">
         {missions.map((mission, i) => {
-          const cat = stopped > i ? CATEGORY_LIST.find((c) => c.id === mission.cat) : CATEGORY_LIST[(frame + i * 2) % CATEGORY_LIST.length]
+          const cat =
+            stopped > i
+              ? CATEGORIES[mission.cat]
+              : CATEGORY_LIST[(frame + i * 2) % CATEGORY_LIST.length]
           return (
             <div
               key={i}
-              className="pixel-frame flex size-20 items-center justify-center bg-crt-950 sm:size-24"
-              style={{ '--frame-c': cat.color }}
+              className="flex size-20 items-center justify-center rounded-xl border transition-colors sm:size-24"
+              style={{
+                borderColor: stopped > i ? cat.color : '#2f2b55',
+                background: stopped > i ? `${cat.color}14` : 'transparent',
+              }}
             >
-              <span
-                className={`font-pixel text-2xl sm:text-3xl ${stopped > i ? 'animate-pop text-glow' : 'animate-reel'}`}
-                style={{ color: cat.color }}
-                aria-hidden="true"
-              >
-                {cat.reel}
-              </span>
+              <PixelSprite
+                sprite={cat.sprite}
+                scale={2.5}
+                className={stopped > i ? 'animate-rise' : 'animate-reel'}
+              />
             </div>
           )
         })}
       </div>
 
-      <p className="mt-8 font-screen text-xl text-neon-cyan/80">
-        {stopped < 3 ? 'La máquina está eligiendo por vos...' : '¡Listo! Ahí van tus 3 misiones.'}
+      <p className="mt-7 text-sm text-muted">
+        {stopped < 3 ? 'La máquina está eligiendo por vos…' : 'Listo. Ahí van tus 3 misiones.'}
       </p>
-    </div>
+    </section>
   )
 }

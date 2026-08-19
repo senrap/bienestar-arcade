@@ -1,5 +1,5 @@
 /**
- * Las 5 familias de habitos traviesos. Cada una tiene su color neon, su
+ * Las 5 familias de habitos diarios. Cada una tiene su color neon, su
  * simbolo de 1 caracter para los rodillos y su sprite de 16x16 (misma grilla
  * de caracteres que usan las mascotas: cada letra es una clave de la paleta).
  */
@@ -8,11 +8,11 @@ export const CATEGORIES = {
     id: 'movimiento',
     name: 'MOVIMIENTO DISRUPTIVO',
     short: 'MOVIMIENTO',
-    color: '#39ff14',
+    color: '#6ecf97',
     reel: '▲',
     tagline: 'Romper la quietud sin pedir permiso.',
     sprite: {
-      palette: { o: '#06280a', g: '#39ff14' },
+      palette: { o: '#1e3b2a', g: '#6ecf97' },
       pixels: [
         '................',
         '................',
@@ -37,11 +37,11 @@ export const CATEGORIES = {
     id: 'ocular',
     name: 'SALUD OCULAR',
     short: 'OCULAR',
-    color: '#00f0ff',
+    color: '#4ecdc4',
     reel: '◉',
     tagline: 'Sacar los ojos de la pantalla.',
     sprite: {
-      palette: { o: '#041a2e', w: '#e8fbff', c: '#00f0ff', p: '#041a2e' },
+      palette: { o: '#16323a', w: '#dff5f3', c: '#4ecdc4', p: '#16323a' },
       pixels: [
         '................',
         '................',
@@ -66,11 +66,11 @@ export const CATEGORIES = {
     id: 'nutricion',
     name: 'NUTRICION ALEGRE',
     short: 'NUTRICION',
-    color: '#ffe600',
+    color: '#f2c14e',
     reel: '★',
     tagline: 'Comer y tomar con intencion.',
     sprite: {
-      palette: { o: '#3a2a00', a: '#ffe600', h: '#fff59d', l: '#39ff14', s: '#7a5c00' },
+      palette: { o: '#4a3a12', a: '#f2c14e', h: '#f7dd9a', l: '#6ecf97', s: '#7a5c2a' },
       pixels: [
         '................',
         '................',
@@ -95,11 +95,11 @@ export const CATEGORIES = {
     id: 'detox',
     name: 'DIGITAL DETOX',
     short: 'DETOX',
-    color: '#ff007f',
+    color: '#e56ba0',
     reel: '✖',
     tagline: 'Modo cueva, modo avion, modo humano.',
     sprite: {
-      palette: { o: '#ff007f', s: '#2a0018', h: '#ff7bd5', x: '#ffffff' },
+      palette: { o: '#e56ba0', s: '#2a1a2e', h: '#f0a8c8', x: '#efe9f5' },
       pixels: [
         '................',
         '................',
@@ -124,11 +124,11 @@ export const CATEGORIES = {
     id: 'presencia',
     name: 'PRESENCIA / SENSORIAL',
     short: 'PRESENCIA',
-    color: '#b76bff',
+    color: '#9d8df1',
     reel: '❋',
     tagline: 'Volver al cuerpo por la puerta de los sentidos.',
     sprite: {
-      palette: { o: '#3a1a5c', f: '#b76bff', c: '#ffe600' },
+      palette: { o: '#3d3466', f: '#9d8df1', c: '#f2c14e' },
       pixels: [
         '................',
         '................',

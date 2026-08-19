@@ -94,9 +94,13 @@ const SFX = {
     const notes = [523, 659, 784, 1047, 1319]
     notes.forEach((f, i) => tone({ freq: f, duration: 0.12, start: i * 0.09, gain: 0.17 }))
   },
-  unlock: () => {
+  levelUp: () => {
     const notes = [659, 784, 988, 1319, 1568, 2093]
     notes.forEach((f, i) => tone({ freq: f, duration: 0.14, start: i * 0.07, gain: 0.15 }))
+  },
+  levelDown: () => {
+    const notes = [740, 587, 466, 349]
+    notes.forEach((f, i) => tone({ freq: f, duration: 0.16, start: i * 0.1, gain: 0.13, type: 'triangle' }))
   },
   breathe: () => tone({ freq: 320, duration: 0.5, sweepTo: 480, type: 'sine', gain: 0.1 }),
   error: () => {

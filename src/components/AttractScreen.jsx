@@ -1,65 +1,42 @@
 import PixelSprite from './PixelSprite.jsx'
 import { CATEGORY_LIST } from '../data/categories.js'
-import { displayDate } from '../lib/date.js'
 
-/**
- * Modo atraccion: lo que se ve antes de pagar la moneda del dia.
- */
-export default function AttractScreen({ state, onInsertCoin }) {
+/** Lo que se ve antes de empezar el dia. */
+export default function AttractScreen({ state, level, onInsertCoin }) {
+  const volviendo = state.streak > 0 || state.level > 0
+
   return (
-    <div className="flex flex-col items-center py-4 text-center">
-      <p className="font-label text-[10px] tracking-[0.35em] text-neon-cyan/80">{displayDate()}</p>
+    <section className="panel flex flex-col items-center px-5 py-8 text-center sm:py-10">
+      <PixelSprite sprite={level} scale={5} label={level.name} className="animate-rise" />
 
-      <h2 className="mt-5 font-pixel text-xl leading-8 text-neon-yellow text-glow sm:text-3xl sm:leading-12">
-        READY PLAYER <span className="text-neon-magenta">ONE</span>
+      <h2 className="mt-6 text-2xl font-bold tracking-wide text-paper">
+        {volviendo ? 'Otro día, otro riego' : 'Empezá tu árbol'}
       </h2>
-
-      <p className="mt-5 max-w-md font-screen text-xl leading-6 text-neon-lime/90 sm:text-2xl">
-        Pagá una moneda y la máquina te tira 3 misiones traviesas de 1 a 5 minutos.
+      <p className="mt-2 max-w-sm text-[15px] leading-relaxed text-muted">
+        Tres misiones de 1 a 5 minutos por día. Cumplilas y el árbol crece; dejá pasar un día y
+        retrocede un nivel.
       </p>
 
-      {/* Las 5 familias, con su sprite */}
-      <ul className="mt-6 flex flex-wrap items-start justify-center gap-3">
+      <button
+        type="button"
+        onClick={onInsertCoin}
+        className="control mt-7 px-10 py-3.5 text-[15px]"
+        style={{ '--ctrl-c': '#4ecdc4' }}
+      >
+        Insert coin
+      </button>
+      <p className="mt-2.5 text-xs text-muted/70">Se sortean tus 3 misiones de hoy</p>
+
+      <ul className="mt-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-4">
         {CATEGORY_LIST.map((c) => (
-          <li
-            key={c.id}
-            className="pixel-frame flex w-24 flex-col items-center gap-2 bg-crt-950 px-2 py-3"
-            style={{ '--frame-c': c.color }}
-            title={c.tagline}
-          >
-            <PixelSprite sprite={c.sprite} scale={2.5} label={c.name} />
-            <span className="font-label text-[8px] leading-3 tracking-widest" style={{ color: c.color }}>
+          <li key={c.id} className="flex w-20 flex-col items-center gap-2" title={c.tagline}>
+            <PixelSprite sprite={c.sprite} scale={2} label={c.name} />
+            <span className="eyebrow text-[9px] leading-3" style={{ color: c.color }}>
               {c.short}
             </span>
           </li>
         ))}
       </ul>
-
-      <button
-        type="button"
-        onClick={onInsertCoin}
-        className="pixel-btn mt-8 bg-neon-magenta px-6 py-4 font-pixel text-xs text-white sm:px-10 sm:text-sm"
-        style={{ '--btn-edge': '#0d0814', '--btn-shadow': '#7a0040' }}
-      >
-        <span className="animate-blink">▸</span> INSERT COIN / START{' '}
-        <span className="animate-blink">◂</span>
-      </button>
-
-      <p className="mt-3 font-label text-[8px] tracking-[0.25em] text-white/40">
-        O PULSA START EN EL GABINETE
-      </p>
-
-      <div className="mt-7 flex w-full max-w-sm items-center justify-between gap-3 border-t-4 border-crt-700 pt-4 font-label text-[10px] tracking-widest">
-        <span className="text-neon-orange">
-          RACHA <span className="text-neon-yellow">{state.streak}</span>
-        </span>
-        <span className="text-neon-cyan/70">
-          HI-SCORE <span className="text-neon-cyan">{state.points}</span>
-        </span>
-        <span className="text-neon-violet">
-          BEST <span className="text-neon-yellow">{state.bestStreak}</span>
-        </span>
-      </div>
-    </div>
+    </section>
   )
 }

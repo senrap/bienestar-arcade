@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 
-/** Ventana modal con marco pixelado, cierre con Escape y foco atrapado basico. */
-export default function Modal({ children, onClose, color = '#00f0ff', label, dismissable = true }) {
+/** Ventana modal simple, con cierre por Escape y por click en el fondo. */
+export default function Modal({ children, onClose, label, dismissable = true }) {
   const ref = useRef(null)
 
   useEffect(() => {
@@ -15,7 +15,7 @@ export default function Modal({ children, onClose, color = '#00f0ff', label, dis
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-crt-950/88 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/85 p-4 backdrop-blur-sm"
       onClick={dismissable ? onClose : undefined}
     >
       <div
@@ -25,17 +25,16 @@ export default function Modal({ children, onClose, color = '#00f0ff', label, dis
         aria-modal="true"
         aria-label={label}
         onClick={(e) => e.stopPropagation()}
-        className="pixel-frame-thick relative max-h-[85vh] w-full max-w-md overflow-y-auto bg-crt-800 p-5 outline-hidden sm:p-6"
-        style={{ '--frame-c': color }}
+        className="panel animate-rise relative max-h-[85vh] w-full max-w-md overflow-y-auto px-6 py-6 outline-hidden"
       >
         {dismissable && (
           <button
             type="button"
             onClick={onClose}
             aria-label="Cerrar"
-            className="focus-pixel absolute right-3 top-3 bg-crt-950 p-1.5 text-white/70 transition-colors hover:text-neon-magenta"
+            className="absolute right-3 top-3 rounded-lg p-1.5 text-muted transition-colors hover:bg-ink-800 hover:text-paper"
           >
-            <X size={14} strokeWidth={3} />
+            <X size={16} />
           </button>
         )}
         {children}

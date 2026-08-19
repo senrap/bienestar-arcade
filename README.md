@@ -1,57 +1,70 @@
-# Bienestar Arcade 👾🎮
+# Bienestar Arcade 🌱
 
-MVP de una app que gamifica el cuidado personal con **hábitos traviesos**: micro-acciones de 1 a 5
-minutos que entran en cualquier día, envueltas en una máquina arcade de los 80/90.
+MVP de una app que gamifica el cuidado personal con **hábitos diarios**: micro-acciones de 1 a 5
+minutos que entran en cualquier día.
 
 La lógica es simple: insertás una moneda, la máquina te tira 3 misiones, las marcás durante el día y
-la racha sube. Si el día vino imposible, el **Comodín Travieso** te salva con 10 segundos de
-respiración y sin culpa.
+**el árbol crece**. Si dejás pasar un día, el árbol retrocede un nivel. Y si el día vino imposible,
+el **comodín** lo protege con 10 segundos de respiración y sin culpa.
 
-## Cómo se juega
+## El árbol: 6 niveles
+
+| Nivel | Nombre | |
+| --- | --- | --- |
+| 1 | Semilla | Todo empieza bajo tierra. |
+| 2 | Brote | Asomó la cabeza. Frágil, pero está. |
+| 3 | Planta | Ya tiene hojas propias. |
+| 4 | Arbolito | Tiene copa. Todavía lo mueve el viento. |
+| 5 | Árbol | Da sombra. Ya no se cae solo. |
+| 6 | Árbol fuerte | Raíces hondas. Este ya aguanta cualquier semana. |
+
+- **Subir**: 3 días cumplidos hacen crecer el árbol un nivel.
+- **Bajar**: cada día que dejás pasar sin cumplir poda un nivel. Nunca baja de semilla.
+- **La cima**: una vez en árbol fuerte, la app cuenta los días que lo venís sosteniendo.
+- **El comodín** protege el nivel pero no hace crecer: sostiene, no avanza.
+
+## Los controles
+
+Tres, al pie de la pantalla. Todo lo demás es tocar la tarjeta.
 
 | Control | Qué hace |
 | --- | --- |
-| **START** / botón **A** / `Enter` | Inserta la moneda del día y, ya en juego, marca la misión apuntada. |
-| **Joystick ▲▼** / `↑` `↓` | Cambia la misión apuntada. |
-| **RECARGAR** / botón **B** / `R` | 1 por día: entra en modo recarga y cambiás la misión que elijas. |
-| **COMODÍN** / `C` | Bypass de 10 segundos ("respirá 3 veces") que conserva la racha en un mal día. |
-| **MENU** / `M` | Abre la colección de sprites. |
-| **AYUDA** / `H` | Cartel de instrucciones. |
-
-Cerrar el día con 3/3 (o con el comodín) es un **COMBO DAY**: bonus de +30 PTS y la racha encadena.
-Los 6 sprites coleccionables se desbloquean por racha, puntos o misiones acumuladas.
+| **Recargar** | Una vez por día: entrás en modo recarga y tocás la misión que querés cambiar. |
+| **Comodín** | 10 segundos de respiración guiada; el nivel queda protegido. |
+| **Ayuda** | Las reglas en una pantalla. |
 
 ### Las 5 familias de misiones
 
-- **Movimiento Disruptivo** — sentadillas en un lugar inusual, escalera, un tema de baile.
-- **Salud Ocular** — mirar a 6 metros, regla 20-20-20, palmeo oscuro.
-- **Nutrición Alegre** — agua con limón antes del café, almuerzo sin pantalla.
-- **Digital Detox** — modo cueva 20 minutos, teléfono en otra habitación.
-- **Presencia / Sensorial** — descalzo sobre el piso frío, inventario 5-4-3-2-1.
+- **Movimiento disruptivo** — sentadillas en un lugar inusual, escalera, un tema de baile.
+- **Salud ocular** — mirar a 6 metros, regla 20-20-20, palmeo oscuro.
+- **Nutrición alegre** — agua con limón antes del café, almuerzo sin pantalla.
+- **Digital detox** — modo cueva 20 minutos, teléfono en otra habitación.
+- **Presencia / sensorial** — descalzo sobre el piso frío, inventario 5-4-3-2-1.
 
-El pool tiene 40 misiones (8 por categoría) en `src/data/missions.js`.
+El pool tiene 40 misiones (8 por categoría) en `src/data/missions.js`. Cada día se sortean 3, siempre
+de categorías distintas.
 
 ## Estética
 
-- **Paleta CRT**: fondo `#0d0814` / `#180e29`, acentos cian `#00f0ff`, magenta `#ff007f`,
-  lima `#39ff14`, amarillo `#ffe600` y violeta `#b76bff`.
-- **Tipografías**: `Press Start 2P` para títulos y botones, `VT323` para texto largo,
-  `Silkscreen` para etiquetas (Google Fonts, con fallback a monoespaciada del sistema).
-- **Mueble completo**: marquesina iluminada, laterales de madera con rejilla de parlante y botonera
-  física, y tablero inferior con joystick y botones A/B. El tubo suma scanlines, viñeta, parpadeo y
-  una línea de barrido. Todo en CSS: la madera, las rejillas y los botones son gradientes.
-- **Layout**: en desktop la pantalla se parte en dos columnas (misiones a la izquierda, marcador y
-  coleccionables a la derecha); en mobile se apila y los laterales se acuestan debajo del tubo.
-- **Sprites**: cada mascota (`src/data/pets.js`) y cada categoría de misión (`src/data/categories.js`)
-  es una grilla de 16×16 caracteres renderizada con CSS Grid. Cero imágenes, cero assets binarios.
-- **Sonido**: chiptune generado en vivo con Web Audio API (ondas cuadradas + ruido filtrado),
-  más vibración háptica donde el dispositivo la soporte. Se puede silenciar desde el tablero.
+Lo arcade quedó como **marco**, no como simulación: hay marquesina, moneda y rodillos, pero no un
+mueble con botones físicos que finjan hacer algo. Los clicks son clicks.
+
+- **Paleta**: fondo índigo profundo (`#0f0e1c` / `#16152a`) y cinco acentos de los 80 bajados de
+  saturación — aqua `#4ecdc4`, menta `#6ecf97`, oro `#f2c14e`, coral `#e56ba0`, lila `#9d8df1`.
+  Un solo acento por elemento; nada de neón sobre negro.
+- **Tipografías**: `Chakra Petch` para títulos, números y controles; `Outfit` para el texto corrido.
+  Ambas de Google Fonts, con fallback a la sans del sistema.
+- **Sprites**: los 6 niveles del árbol (`src/data/levels.js`) y las 5 categorías
+  (`src/data/categories.js`) son grillas de 16×16 caracteres renderizadas con CSS Grid.
+  Cero imágenes, cero assets binarios.
+- **Sonido**: chiptune generado en vivo con Web Audio API (ondas cuadradas + ruido filtrado), más
+  vibración háptica donde el dispositivo la soporte. Se silencia desde el ícono del encabezado.
 
 ## Stack
 
 - **Vite 8** + **React 19**
 - **Tailwind CSS 4** (tokens de diseño en `@theme`, sin archivo de config)
-- **lucide-react** para los íconos, con `image-rendering: pixelated` global
+- **lucide-react** para los íconos
 - **LocalStorage** como única persistencia (clave `bienestar-arcade:v1`)
 
 ## Desarrollo
@@ -68,28 +81,29 @@ npm run preview  # sirve el build
 
 ```
 src/
-  data/         categorías, pool de misiones y sprites de las mascotas
+  data/         categorías, pool de misiones y niveles del árbol
   lib/          lógica de juego pura, fechas, audio chiptune
   hooks/        useGame: reducer + persistencia + rollover de medianoche
-  components/   gabinete, tubo CRT, rodillos, misiones, modales
+  components/   marco, pantalla de inicio, rodillos, misiones, modales
 ```
 
 La lógica de juego (`src/lib/game.js`) es de funciones puras y está cubierta por tests: sorteo,
-re-roll, cierre del día, encadenado y reinicio de rachas, historial e hidratación de LocalStorage.
+recarga, cierre del día, crecimiento y poda del árbol, días en la cima, rachas, historial e
+hidratación de LocalStorage.
 
 ## Detalles que importan
 
 - **El día es local**, no UTC: las claves `YYYY-MM-DD` se arman con la fecha del dispositivo para que
-  la racha no se corra de huso horario.
+  el árbol no se pode por un huso horario.
 - **Medianoche en vivo**: si la app queda abierta, revisa cada 30 segundos (y al volver a la pestaña)
   si cambió el día, y arranca uno nuevo sola.
-- **Saltear un día** reinicia la racha; un día en curso todavía sin cerrar, no.
+- **Días sin abrir la app cuentan**: al volver después de un hueco, se poda un nivel por cada día
+  perdido, no solo por el último.
 - **Accesibilidad**: los checkboxes son `role="checkbox"` con `aria-checked`, los modales cierran con
-  Escape y hay foco visible pixelado. Todo el juego se puede jugar con teclado.
-  `prefers-reduced-motion` apaga las animaciones.
+  Escape y el foco es visible. `prefers-reduced-motion` apaga las animaciones.
 
 ## Pendientes post-MVP
 
 - Recordatorios / notificaciones para las misiones del día.
 - Sincronización entre dispositivos (hoy todo vive en LocalStorage).
-- Más sprites y un modo "co-op" para hacer misiones con otra persona.
+- Modo co-op: dos árboles que crecen juntos.

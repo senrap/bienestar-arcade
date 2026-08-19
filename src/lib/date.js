@@ -43,3 +43,9 @@ export function previousKey(key) {
   d.setDate(d.getDate() - 1)
   return todayKey(d)
 }
+
+/** Cantidad de dias entre dos claves (b - a). Negativa si b es anterior. */
+export function daysBetween(a, b) {
+  const ms = parseKey(b).setHours(0, 0, 0, 0) - parseKey(a).setHours(0, 0, 0, 0)
+  return Math.round(ms / 86400000)
+}

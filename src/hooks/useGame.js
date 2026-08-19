@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
+import { useEffect, useMemo, useReducer } from 'react'
 import {
   COMBO_BONUS,
   DAILY_MISSIONS,
@@ -8,14 +8,13 @@ import {
   createState,
   hydrate,
   isDayComplete,
-  newlyUnlocked,
+  levelInfo,
   rerollAt,
   rollMissions,
   rollOverDay,
   writeHistory,
   WILDCARD_TASK,
 } from '../lib/game.js'
-import { PETS } from '../data/pets.js'
 import { todayKey } from '../lib/date.js'
 import { play, setMuted } from '../lib/audio.js'
 
@@ -28,17 +27,11 @@ function readStorage() {
   }
 }
 
-/** Tras cada accion, registra el dia y anota las mascotas recien ganadas. */
-function settle(state) {
-  const unlocked = [...state.unlocked, ...newlyUnlocked(state)]
-  return writeHistory({ ...state, unlocked })
-}
-
 function reducer(state, action) {
   switch (action.type) {
     case 'insert-coin': {
       if (state.coinInserted) return state
-      return settle({ ...state, coinInserted: true, missions: rollMissions(DAILY_MISSIONS) })
+      return writeHistory({ ...state, coinInserted: true, missions: rollMissions(DAILY_MISSIONS) })
     }
 
     case 'toggle': {
@@ -59,18 +52,18 @@ function reducer(state, action) {
       if (all && !next.comboBonusGiven) {
         next = closeDay({ ...next, points: next.points + COMBO_BONUS, comboBonusGiven: true })
       } else if (!all && next.comboBonusGiven) {
-        // Se desmarco una mision: se devuelve el bonus, pero el combo day ya esta ganado.
+        // Se desmarco una mision: se devuelve el bonus, pero el dia ya esta ganado.
         next = { ...next, points: Math.max(0, next.points - COMBO_BONUS), comboBonusGiven: false }
       }
 
-      return settle(next)
+      return writeHistory(next)
     }
 
     case 'reroll': {
       if (state.rerollsLeft <= 0 || state.wildcardUsed) return state
       const target = state.missions[action.index]
       if (!target || target.done) return state
-      return settle({
+      return writeHistory({
         ...state,
         missions: rerollAt(state.missions, action.index),
         rerollsLeft: state.rerollsLeft - 1,
@@ -79,19 +72,20 @@ function reducer(state, action) {
 
     case 'wildcard': {
       if (state.wildcardUsed) return state
-      return settle(
-        closeDay({ ...state, wildcardUsed: true, points: state.points + WILDCARD_TASK.pts }),
+      // El comodin protege el nivel pero no hace crecer el arbol.
+      return writeHistory(
+        closeDay({ ...state, wildcardUsed: true, points: state.points + WILDCARD_TASK.pts }, { advance: false }),
       )
     }
+
+    case 'dismiss-level-change':
+      return { ...state, levelChange: null }
 
     case 'rollover':
       return rollOverDay(state, action.day)
 
     case 'mute':
       return { ...state, muted: action.value }
-
-    case 'reset':
-      return createState()
 
     default:
       return state
@@ -100,15 +94,13 @@ function reducer(state, action) {
 
 export function useGame() {
   const [state, dispatch] = useReducer(reducer, null, readStorage)
-  const [celebrating, setCelebrating] = useState(null)
-  const knownPets = useRef(state.unlocked)
 
   // Persistencia: LocalStorage alcanza para el MVP.
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
     } catch {
-      /* modo incognito lleno o storage bloqueado: el juego sigue en memoria */
+      /* storage bloqueado o lleno: el juego sigue en memoria */
     }
   }, [state])
 
@@ -130,21 +122,11 @@ export function useGame() {
     }
   }, [state.day])
 
-  // Una mascota nueva merece su pantalla de celebracion.
+  // Subir o bajar de nivel merece su sonido.
   useEffect(() => {
-    const fresh = state.unlocked.filter((id) => !knownPets.current.includes(id))
-    knownPets.current = state.unlocked
-    if (fresh.length) {
-      const pet = PETS.find((p) => p.id === fresh[fresh.length - 1])
-      if (pet) {
-        setCelebrating(pet)
-        play('unlock', [18, 40, 18, 40, 60])
-      }
-    }
-  }, [state.unlocked])
-
-  const done = completedCount(state)
-  const dayComplete = isDayComplete(state)
+    if (state.levelChange?.type === 'up') play('levelUp', [18, 40, 18, 40, 60])
+    if (state.levelChange?.type === 'down') play('levelDown', 40)
+  }, [state.levelChange])
 
   const actions = useMemo(
     () => ({
@@ -152,13 +134,17 @@ export function useGame() {
       toggle: (index) => dispatch({ type: 'toggle', index }),
       reroll: (index) => dispatch({ type: 'reroll', index }),
       useWildcard: () => dispatch({ type: 'wildcard' }),
+      dismissLevelChange: () => dispatch({ type: 'dismiss-level-change' }),
       setMuted: (value) => dispatch({ type: 'mute', value }),
-      reset: () => dispatch({ type: 'reset' }),
     }),
     [],
   )
 
-  const dismissCelebration = useCallback(() => setCelebrating(null), [])
-
-  return { state, done, dayComplete, celebrating, dismissCelebration, ...actions }
+  return {
+    state,
+    done: completedCount(state),
+    dayComplete: isDayComplete(state),
+    level: levelInfo(state),
+    ...actions,
+  }
 }

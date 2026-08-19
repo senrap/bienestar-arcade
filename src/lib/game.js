@@ -1,10 +1,10 @@
 import { MISSIONS, MISSIONS_BY_CAT, WILDCARD_TASK } from '../data/missions.js'
 import { CATEGORY_LIST } from '../data/categories.js'
-import { earnedPetIds } from '../data/pets.js'
-import { todayKey, previousKey } from './date.js'
+import { LEVELS, LEVEL_STEPS, MAX_LEVEL } from '../data/levels.js'
+import { daysBetween, previousKey, todayKey } from './date.js'
 
 export const STORAGE_KEY = 'bienestar-arcade:v1'
-export const STATE_VERSION = 1
+export const STATE_VERSION = 2
 export const DAILY_MISSIONS = 3
 export const DAILY_REROLLS = 1
 export const COMBO_BONUS = 30
@@ -32,12 +32,15 @@ export function createState(day = todayKey()) {
     wildcardUsed: false,
     dayClosed: false,
     comboBonusGiven: false,
+    level: 0,
+    levelProgress: 0,
+    daysAtTop: 0,
+    levelChange: null,
     streak: 0,
     bestStreak: 0,
     points: 0,
     totalCompleted: 0,
     lastComboDay: null,
-    unlocked: [],
     muted: false,
     history: {},
   }
@@ -45,7 +48,6 @@ export function createState(day = todayKey()) {
 
 /**
  * Sortea las misiones del dia: 3 categorias distintas, una mision de cada una.
- * Asi nunca salen tres sentadillas seguidas.
  */
 export function rollMissions(count = DAILY_MISSIONS) {
   const cats = shuffle(CATEGORY_LIST.map((c) => c.id)).slice(0, count)
@@ -69,7 +71,7 @@ export function rerollAt(missions, index) {
   return missions.map((m, i) => (i === index ? next : m))
 }
 
-/** Un dia se considera "combo day" con 3/3 misiones o con el comodin activado. */
+/** Un dia cuenta como cumplido con 3/3 misiones o con el comodin activado. */
 export function isDayComplete(state) {
   return state.wildcardUsed || state.missions.filter((m) => m.done).length >= DAILY_MISSIONS
 }
@@ -78,16 +80,69 @@ export function completedCount(state) {
   return state.missions.filter((m) => m.done).length
 }
 
-/** Marca el dia como cumplido y encadena (o reinicia) la racha. */
-export function closeDay(state) {
+/** Info del nivel actual, lista para pintar. */
+export function levelInfo(state) {
+  const level = LEVELS[state.level] ?? LEVELS[0]
+  const atTop = state.level >= MAX_LEVEL
+  return {
+    ...level,
+    index: state.level,
+    atTop,
+    progress: atTop ? LEVEL_STEPS : state.levelProgress,
+    steps: LEVEL_STEPS,
+    next: atTop ? null : LEVELS[state.level + 1],
+    daysAtTop: state.daysAtTop,
+  }
+}
+
+/**
+ * Cierra el dia. Con las 3 misiones cumplidas el arbol avanza un paso; con el
+ * comodin el dia cuenta igual pero solo protege, no hace crecer.
+ */
+export function closeDay(state, { advance = true } = {}) {
   if (state.dayClosed) return state
+
   const streak = state.lastComboDay === previousKey(state.day) ? state.streak + 1 : 1
+  let { level, levelProgress, daysAtTop } = state
+  let levelChange = null
+
+  if (advance) {
+    if (level >= MAX_LEVEL) {
+      daysAtTop += 1
+    } else {
+      levelProgress += 1
+      if (levelProgress >= LEVEL_STEPS) {
+        levelProgress = 0
+        level += 1
+        levelChange = { type: 'up', from: state.level, to: level }
+        if (level >= MAX_LEVEL) daysAtTop = 1
+      }
+    }
+  }
+
   return {
     ...state,
     dayClosed: true,
     lastComboDay: state.day,
     streak,
     bestStreak: Math.max(state.bestStreak, streak),
+    level,
+    levelProgress,
+    daysAtTop,
+    levelChange,
+  }
+}
+
+/** Cada dia sin cumplir poda un nivel del arbol. Nunca baja de semilla. */
+export function demote(state, missedDays) {
+  if (missedDays <= 0 || state.level <= 0) return state
+  const level = Math.max(0, state.level - missedDays)
+  return {
+    ...state,
+    level,
+    levelProgress: 0,
+    daysAtTop: 0,
+    levelChange: { type: 'down', from: state.level, to: level },
   }
 }
 
@@ -108,22 +163,22 @@ export function writeHistory(state) {
   return { ...state, history }
 }
 
-/** Devuelve las mascotas recien desbloqueadas por el progreso actual. */
-export function newlyUnlocked(state) {
-  const earned = earnedPetIds(state)
-  return earned.filter((id) => !state.unlocked.includes(id))
-}
-
 /**
- * Cambio de dia: se archiva el dia anterior, se reinician las misiones y,
- * si el usuario se salteo un dia entero, la racha vuelve a cero.
+ * Cambio de dia: archiva el dia anterior, poda el arbol por cada dia que quedo
+ * sin cumplir (incluidos los dias en los que ni se abrio la app) y reinicia
+ * las misiones.
  */
 export function rollOverDay(state, day = todayKey()) {
   if (state.day === day) return state
+
   const archived = writeHistory(state)
-  const keepStreak = archived.lastComboDay === day || archived.lastComboDay === previousKey(day)
+  const gap = Math.max(1, daysBetween(state.day, day))
+  const missed = (archived.dayClosed ? 0 : 1) + (gap - 1)
+  const keepStreak =
+    archived.lastComboDay === day || archived.lastComboDay === previousKey(day)
+
   return {
-    ...archived,
+    ...demote(archived, missed),
     day,
     coinInserted: false,
     missions: [],
@@ -140,10 +195,13 @@ export function hydrate(raw, day = todayKey()) {
   if (!raw || typeof raw !== 'object') return createState(day)
   const base = { ...createState(raw.day || day), ...raw }
   base.missions = Array.isArray(base.missions) ? base.missions : []
-  base.unlocked = Array.isArray(base.unlocked) ? base.unlocked : []
   base.history = base.history && typeof base.history === 'object' ? base.history : {}
+  base.level = Math.min(MAX_LEVEL, Math.max(0, Number(base.level) || 0))
+  base.levelProgress = Math.min(LEVEL_STEPS - 1, Math.max(0, Number(base.levelProgress) || 0))
+  base.daysAtTop = Math.max(0, Number(base.daysAtTop) || 0)
   base.version = STATE_VERSION
+  delete base.unlocked
   return rollOverDay(base, day)
 }
 
-export { WILDCARD_TASK }
+export { LEVELS, LEVEL_STEPS, MAX_LEVEL, WILDCARD_TASK }
