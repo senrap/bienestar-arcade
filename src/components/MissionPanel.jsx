@@ -1,88 +1,94 @@
-import { Sparkles } from 'lucide-react'
-import Hud from './Hud.jsx'
 import MissionCard from './MissionCard.jsx'
+import ScorePanel from './ScorePanel.jsx'
 import { COMBO_BONUS, WILDCARD_TASK } from '../lib/game.js'
+import { displayDate } from '../lib/date.js'
 
 /**
- * Pantalla de juego: marcador, las 3 misiones del dia y las dos valvulas de
- * escape (re-roll y comodin travieso).
+ * Pantalla de juego. En desktop se parte en dos columnas (misiones a la
+ * izquierda, marcador y coleccionables a la derecha); en mobile se apila.
  */
 export default function MissionPanel({
   state,
   done,
   dayComplete,
+  focused,
+  rechargeMode,
   onToggle,
-  onReroll,
-  onWildcard,
+  onPick,
+  onOpenGallery,
 }) {
-  const canReroll = state.rerollsLeft > 0 && !state.wildcardUsed
-
   return (
     <div className="py-1">
-      <Hud state={state} done={done} />
+      <div className="mb-4 flex items-center justify-between font-label text-[9px] tracking-[0.25em]">
+        <span className="text-neon-cyan/80">{displayDate()}</span>
+        <span className="text-neon-magenta">1UP</span>
+      </div>
 
-      {state.wildcardUsed ? (
-        <div
-          className="pixel-frame mt-5 bg-crt-900 p-4 text-center"
-          style={{ '--frame-c': '#b76bff' }}
-        >
-          <p className="font-pixel text-[11px] leading-6 text-neon-violet text-glow">
-            COMODIN TRAVIESO USADO
-          </p>
-          <p className="mt-3 font-screen text-xl leading-6 text-white/80">
-            Hoy tu única misión era respirar tres veces. La racha quedó a salvo y nadie te va a
-            pedir explicaciones.
-          </p>
-        </div>
-      ) : (
-        <ul className="mt-5 flex flex-col gap-3">
-          {state.missions.map((mission, i) => (
-            <MissionCard
-              key={`${mission.id}-${i}`}
-              mission={mission}
-              index={i}
-              onToggle={onToggle}
-              onReroll={onReroll}
-              canReroll={canReroll}
-              locked={state.wildcardUsed}
-            />
-          ))}
-        </ul>
-      )}
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)] lg:gap-5">
+        {/* --- COLUMNA IZQUIERDA: MISION DIARIA --- */}
+        <section>
+          <h2 className="mb-3 text-center font-pixel text-[12px] leading-6 text-neon-yellow text-glow-soft sm:text-sm">
+            MISION DIARIA
+          </h2>
 
-      {/* --- BANNER DE DIA COMPLETO --- */}
-      {dayComplete && (
-        <div
-          className="pixel-frame animate-pop mt-5 bg-crt-950 p-4 text-center"
-          style={{ '--frame-c': '#39ff14' }}
-        >
-          <p className="font-pixel text-[12px] leading-6 text-neon-lime text-glow sm:text-sm">
-            COMBO DAY x{state.streak}
-          </p>
-          <p className="mt-3 font-screen text-xl leading-6 text-neon-yellow">
-            {state.wildcardUsed
-              ? 'Día salvado con el comodín. Mañana volvés con todo.'
-              : `¡3 de 3! Bonus de +${COMBO_BONUS} PTS y la racha sube.`}
-          </p>
-        </div>
-      )}
+          {rechargeMode && (
+            <p
+              className="pixel-frame animate-pop mb-3 bg-crt-950 px-3 py-2 text-center font-label text-[9px] tracking-widest text-neon-orange"
+              style={{ '--frame-c': '#ff7b00' }}
+            >
+              MODO RECARGA · ELEGI QUE MISION CAMBIAR
+            </p>
+          )}
 
-      {/* --- PIE DE CONTROLES --- */}
-      <div className="mt-5 flex flex-col gap-3 border-t-4 border-crt-700 pt-4 sm:flex-row sm:items-center sm:justify-between">
-        <p className="font-label text-[9px] leading-4 tracking-widest text-white/50">
-          RE-ROLLS: <span className="text-neon-violet">{state.rerollsLeft}</span> / 1 POR DIA
-        </p>
+          {state.wildcardUsed ? (
+            <div
+              className="pixel-frame bg-crt-900 p-4 text-center"
+              style={{ '--frame-c': '#b76bff' }}
+            >
+              <p className="font-pixel text-[11px] leading-6 text-neon-violet text-glow">
+                COMODIN TRAVIESO USADO
+              </p>
+              <p className="mt-3 font-screen text-xl leading-6 text-white/80">
+                Hoy tu única misión era {WILDCARD_TASK.title.toLowerCase()}. La racha quedó a salvo y
+                nadie te va a pedir explicaciones.
+              </p>
+            </div>
+          ) : (
+            <ul className="flex flex-col gap-3">
+              {state.missions.map((mission, i) => (
+                <MissionCard
+                  key={`${mission.id}-${i}`}
+                  mission={mission}
+                  index={i}
+                  focused={focused === i}
+                  rechargeMode={rechargeMode}
+                  onToggle={onToggle}
+                  onPick={onPick}
+                  locked={state.wildcardUsed}
+                />
+              ))}
+            </ul>
+          )}
 
-        <button
-          type="button"
-          onClick={onWildcard}
-          disabled={state.wildcardUsed}
-          className="pixel-btn flex items-center justify-center gap-2 bg-neon-violet px-4 py-3 font-pixel text-[9px] text-crt-950"
-          style={{ '--btn-edge': '#0d0814', '--btn-shadow': '#4a2170' }}
-        >
-          <Sparkles size={13} strokeWidth={3} aria-hidden="true" />
-          {state.wildcardUsed ? 'COMODIN USADO' : `COMODIN TRAVIESO (${WILDCARD_TASK.seconds}s)`}
-        </button>
+          {dayComplete && (
+            <div
+              className="pixel-frame animate-pop mt-4 bg-crt-950 p-4 text-center"
+              style={{ '--frame-c': '#39ff14' }}
+            >
+              <p className="font-pixel text-[12px] leading-6 text-neon-lime text-glow">
+                COMBO DAY x{state.streak}
+              </p>
+              <p className="mt-3 font-screen text-xl leading-6 text-neon-yellow">
+                {state.wildcardUsed
+                  ? 'Día salvado con el comodín. Mañana volvés con todo.'
+                  : `¡3 de 3! Bonus de +${COMBO_BONUS} PTS y la racha sube.`}
+              </p>
+            </div>
+          )}
+        </section>
+
+        {/* --- COLUMNA DERECHA: MARCADOR --- */}
+        <ScorePanel state={state} done={done} onOpenGallery={onOpenGallery} />
       </div>
     </div>
   )

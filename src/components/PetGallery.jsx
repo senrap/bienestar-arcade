@@ -20,7 +20,7 @@ export default function PetGallery({ unlocked, onClose }) {
               className="pixel-frame flex flex-col items-center bg-crt-950 p-3 text-center"
               style={{ '--frame-c': has ? '#39ff14' : '#241440' }}
             >
-              <PixelSprite pet={pet} scale={5} locked={!has} />
+              <PixelSprite sprite={pet} scale={5} locked={!has} label={has ? pet.name : `${pet.name} (bloqueada)`} />
               <p
                 className={`mt-3 font-pixel text-[8px] leading-4 ${has ? 'text-neon-cyan' : 'text-crt-600'}`}
               >

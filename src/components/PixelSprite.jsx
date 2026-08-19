@@ -1,29 +1,31 @@
 /**
- * Dibuja un sprite de 16x16 a partir de su grilla de caracteres.
+ * Dibuja un sprite a partir de su grilla de caracteres (16x16 en todo el juego).
  * Sin imagenes: cada pixel es una celda de una grilla CSS.
  */
-export default function PixelSprite({ pet, scale = 6, locked = false, className = '' }) {
-  const size = pet.pixels[0].length * scale
+export default function PixelSprite({ sprite, scale = 6, locked = false, label, className = '' }) {
+  const { pixels, palette } = sprite
+  const cols = pixels[0].length
 
   return (
     <div
       className={className}
       style={{
         display: 'grid',
-        gridTemplateColumns: `repeat(${pet.pixels[0].length}, ${scale}px)`,
+        gridTemplateColumns: `repeat(${cols}, ${scale}px)`,
         gridAutoRows: `${scale}px`,
-        width: size,
-        height: pet.pixels.length * scale,
+        width: cols * scale,
+        height: pixels.length * scale,
         filter: locked ? 'brightness(0) opacity(0.35)' : 'drop-shadow(0 0 6px rgba(0,240,255,0.25))',
       }}
-      role="img"
-      aria-label={locked ? `${pet.name} (bloqueada)` : pet.name}
+      role={label ? 'img' : 'presentation'}
+      aria-label={label}
+      aria-hidden={label ? undefined : 'true'}
     >
-      {pet.pixels.flatMap((row, y) =>
+      {pixels.flatMap((row, y) =>
         [...row].map((char, x) => (
           <div
             key={`${x}-${y}`}
-            style={{ background: char === '.' ? 'transparent' : pet.palette[char] }}
+            style={{ background: char === '.' ? 'transparent' : palette[char] }}
           />
         )),
       )}

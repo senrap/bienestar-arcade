@@ -1,6 +1,7 @@
 /**
- * Las 5 familias de habitos traviesos. Cada una tiene su color neon y su
- * simbolo de 1 caracter para los rodillos de la tragamonedas.
+ * Las 5 familias de habitos traviesos. Cada una tiene su color neon, su
+ * simbolo de 1 caracter para los rodillos y su sprite de 16x16 (misma grilla
+ * de caracteres que usan las mascotas: cada letra es una clave de la paleta).
  */
 export const CATEGORIES = {
   movimiento: {
@@ -10,6 +11,27 @@ export const CATEGORIES = {
     color: '#39ff14',
     reel: '▲',
     tagline: 'Romper la quietud sin pedir permiso.',
+    sprite: {
+      palette: { o: '#06280a', g: '#39ff14' },
+      pixels: [
+        '................',
+        '................',
+        '................',
+        '..oo........oo..',
+        '.oggo......oggo.',
+        '.oggo......oggo.',
+        '.oggooooooooggo.',
+        '.oggoggggggoggo.',
+        '.oggoggggggoggo.',
+        '.oggooooooooggo.',
+        '.oggo......oggo.',
+        '.oggo......oggo.',
+        '..oo........oo..',
+        '................',
+        '................',
+        '................',
+      ],
+    },
   },
   ocular: {
     id: 'ocular',
@@ -18,6 +40,27 @@ export const CATEGORIES = {
     color: '#00f0ff',
     reel: '◉',
     tagline: 'Sacar los ojos de la pantalla.',
+    sprite: {
+      palette: { o: '#041a2e', w: '#e8fbff', c: '#00f0ff', p: '#041a2e' },
+      pixels: [
+        '................',
+        '................',
+        '................',
+        '................',
+        '................',
+        '.....oooooo.....',
+        '...oowwwwwwoo...',
+        '..owwwccccwwwo..',
+        '.owwccppppccwwo.',
+        '.owwccppppccwwo.',
+        '..owwwccccwwwo..',
+        '...oowwwwwwoo...',
+        '.....oooooo.....',
+        '................',
+        '................',
+        '................',
+      ],
+    },
   },
   nutricion: {
     id: 'nutricion',
@@ -26,6 +69,27 @@ export const CATEGORIES = {
     color: '#ffe600',
     reel: '★',
     tagline: 'Comer y tomar con intencion.',
+    sprite: {
+      palette: { o: '#3a2a00', a: '#ffe600', h: '#fff59d', l: '#39ff14', s: '#7a5c00' },
+      pixels: [
+        '................',
+        '................',
+        '................',
+        '........s.......',
+        '.......sslll....',
+        '....oooooooo....',
+        '..oohaaaaaahoo..',
+        '.oohaaaaaaaahoo.',
+        '.ohaaaaaaaaaaho.',
+        '.ohaaaaaaaaaaho.',
+        '.ohaaaaaaaaaaho.',
+        '.oohaaaaaaaahoo.',
+        '..oohaaaaaahoo..',
+        '....oooooooo....',
+        '................',
+        '................',
+      ],
+    },
   },
   detox: {
     id: 'detox',
@@ -34,6 +98,27 @@ export const CATEGORIES = {
     color: '#ff007f',
     reel: '✖',
     tagline: 'Modo cueva, modo avion, modo humano.',
+    sprite: {
+      palette: { o: '#ff007f', s: '#2a0018', h: '#ff7bd5', x: '#ffffff' },
+      pixels: [
+        '................',
+        '................',
+        '....oooooooxx...',
+        '....osssssxx....',
+        '....ossssxxo....',
+        '....osssxxso....',
+        '....ossxxsso....',
+        '....osxxssso....',
+        '....oxxsssso....',
+        '....xxssssso....',
+        '...xxsssssso....',
+        '..xxohhhhhho....',
+        '.xx.oooooooo....',
+        '................',
+        '................',
+        '................',
+      ],
+    },
   },
   presencia: {
     id: 'presencia',
@@ -42,6 +127,27 @@ export const CATEGORIES = {
     color: '#b76bff',
     reel: '❋',
     tagline: 'Volver al cuerpo por la puerta de los sentidos.',
+    sprite: {
+      palette: { o: '#3a1a5c', f: '#b76bff', c: '#ffe600' },
+      pixels: [
+        '................',
+        '................',
+        '......oooo......',
+        '.....offffo.....',
+        '.....offffo.....',
+        '..oooffffffooo..',
+        '.offffffffffffo.',
+        '.offfffccfffffo.',
+        '.offfffccfffffo.',
+        '.offffffffffffo.',
+        '..oooffffffooo..',
+        '.....offffo.....',
+        '.....offffo.....',
+        '......oooo......',
+        '................',
+        '................',
+      ],
+    },
   },
 }
 

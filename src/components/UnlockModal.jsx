@@ -11,7 +11,7 @@ export default function UnlockModal({ pet, onClose }) {
         </p>
 
         <div className="my-6 flex justify-center">
-          <PixelSprite pet={pet} scale={9} className="animate-float" />
+          <PixelSprite sprite={pet} scale={9} label={pet.name} className="animate-float" />
         </div>
 
         <h2 className="font-pixel text-[13px] leading-6 text-neon-cyan text-glow">{pet.name}</h2>
