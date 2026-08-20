@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer } from 'react'
+import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import {
   COMBO_BONUS,
   DAILY_MISSIONS,
@@ -17,6 +17,8 @@ import {
 } from '../lib/game.js'
 import { todayKey } from '../lib/date.js'
 import { play, setMuted } from '../lib/audio.js'
+import { cloudEnabled } from '../lib/supabase.js'
+import { merge, pull, push, pushHistory } from '../lib/cloud.js'
 
 function readStorage() {
   try {
@@ -78,6 +80,11 @@ function reducer(state, action) {
       )
     }
 
+    case 'merge-remote':
+      // Se funde lo que estaba en la nube con lo de este dispositivo sin
+      // perder progreso: gana el arbol mas avanzado.
+      return merge(state, action.remote)
+
     case 'dismiss-level-change':
       return { ...state, levelChange: null }
 
@@ -92,8 +99,10 @@ function reducer(state, action) {
   }
 }
 
-export function useGame() {
+export function useGame(userId) {
   const [state, dispatch] = useReducer(reducer, null, readStorage)
+  const [sync, setSync] = useState('idle') // idle | syncing | saved | error
+  const primerPush = useRef(true)
 
   // Persistencia: LocalStorage alcanza para el MVP.
   useEffect(() => {
@@ -128,6 +137,48 @@ export function useGame() {
     if (state.levelChange?.type === 'down') play('levelDown', 40)
   }, [state.levelChange])
 
+  // Al entrar con cuenta: bajar lo que haya en la nube y fundirlo con lo local.
+  useEffect(() => {
+    if (!userId || !cloudEnabled) {
+      setSync('idle')
+      return
+    }
+    let vivo = true
+    setSync('syncing')
+    primerPush.current = true
+
+    pull(userId)
+      .then((remote) => {
+        if (!vivo) return
+        if (remote) dispatch({ type: 'merge-remote', remote })
+      })
+      .catch(() => vivo && setSync('error'))
+
+    return () => {
+      vivo = false
+    }
+  }, [userId])
+
+  // Y en cada cambio, subir. Con un respiro para no escribir en cada tilde.
+  useEffect(() => {
+    if (!userId || !cloudEnabled) return
+    const id = setTimeout(async () => {
+      try {
+        setSync('syncing')
+        // La primera subida lleva todo el historial de este dispositivo.
+        if (primerPush.current) {
+          primerPush.current = false
+          await pushHistory(userId, state.history)
+        }
+        await push(userId, state)
+        setSync('saved')
+      } catch {
+        setSync('error')
+      }
+    }, 1200)
+    return () => clearTimeout(id)
+  }, [userId, state])
+
   const actions = useMemo(
     () => ({
       insertCoin: () => dispatch({ type: 'insert-coin' }),
@@ -142,6 +193,7 @@ export function useGame() {
 
   return {
     state,
+    sync,
     done: completedCount(state),
     dayComplete: isDayComplete(state),
     level: levelInfo(state),

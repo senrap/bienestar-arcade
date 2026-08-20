@@ -1,5 +1,7 @@
 -- Bienestar Arcade: cuentas, progreso en la nube y ranking.
 --
+-- Aplicada en el proyecto `bienestar-arcade` (eogvnrloqwbhyxowhize).
+--
 -- IMPORTANTE: aplicar SOLO en un proyecto de Supabase dedicado a esta app.
 -- No usar un proyecto que ya tenga otros datos: al habilitar el registro
 -- abierto, cualquiera que se cree una cuenta pasa a ser un usuario
@@ -60,14 +62,17 @@ alter table public.profiles enable row level security;
 alter table public.progress enable row level security;
 alter table public.days     enable row level security;
 
+drop policy if exists profiles_propio on public.profiles;
 create policy profiles_propio on public.profiles
   for all to authenticated
   using (id = (select auth.uid())) with check (id = (select auth.uid()));
 
+drop policy if exists progress_propio on public.progress;
 create policy progress_propio on public.progress
   for all to authenticated
   using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
 
+drop policy if exists days_propio on public.days;
 create policy days_propio on public.days
   for all to authenticated
   using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
@@ -76,8 +81,13 @@ create policy days_propio on public.days
 -- RANKING
 --
 -- Vista con security_invoker = off: corre con los permisos del dueno, asi que
--- puede leer todas las filas, pero expone unicamente lo que se ve en la tabla.
--- El email nunca sale de aca. Solo entran quienes activaron `in_ranking`.
+-- puede leer todas las filas, pero expone unicamente las columnas de aca abajo.
+-- El email y el user_id nunca salen. Solo entran quienes activaron `in_ranking`.
+--
+-- El linter de Supabase marca esto como `security_definer_view`. Es a proposito:
+-- es la unica forma de mostrar un ranking sin abrir la tabla `progress` entera
+-- a todos los usuarios. La alternativa —policies que dejen leer las filas de
+-- quienes se anotaron— expone mas datos, no menos.
 --
 -- Se ordena por arbol y constancia, no por puntos: premia sostener, no inflar.
 -- ---------------------------------------------------------------------------
@@ -97,6 +107,7 @@ with (security_invoker = off) as
   join public.profiles p on p.id = g.user_id
   where p.in_ranking and p.display_name is not null;
 
+revoke all on public.leaderboard from anon;
 grant select on public.leaderboard to authenticated;
 
 -- ---------------------------------------------------------------------------
@@ -131,8 +142,10 @@ begin
 end;
 $$;
 
+drop trigger if exists profiles_touch on public.profiles;
 create trigger profiles_touch before update on public.profiles
   for each row execute function public.touch_updated_at();
 
+drop trigger if exists progress_touch on public.progress;
 create trigger progress_touch before update on public.progress
   for each row execute function public.touch_updated_at();

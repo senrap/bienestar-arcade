@@ -1,4 +1,5 @@
 import { Volume2, VolumeX } from 'lucide-react'
+import AccountButton from './AccountButton.jsx'
 import { displayDate } from '../lib/date.js'
 import HacheFooter from './HacheFooter.jsx'
 import InstallPrompt from './InstallPrompt.jsx'
@@ -7,7 +8,7 @@ import InstallPrompt from './InstallPrompt.jsx'
  * El marco. La estetica arcade queda como envoltorio —marquesina y borde—
  * y no como simulacion de una maquina con botones fisicos.
  */
-export default function AppShell({ children, controls, muted, onToggleMute }) {
+export default function AppShell({ children, controls, muted, onToggleMute, user, sync, onEntrar, onSalir }) {
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col gap-4 px-4 py-6 sm:py-10">
       <header className="panel frame-glow px-5 py-5 sm:px-7 sm:py-6">
@@ -19,8 +20,9 @@ export default function AppShell({ children, controls, muted, onToggleMute }) {
             <p className="eyebrow mt-1.5 text-muted">Hábitos diarios</p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <span className="eyebrow hidden text-muted sm:block">{displayDate()}</span>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <span className="eyebrow hidden text-muted lg:block">{displayDate()}</span>
+            <AccountButton user={user} sync={sync} onEntrar={onEntrar} onSalir={onSalir} />
             <button
               type="button"
               onClick={onToggleMute}

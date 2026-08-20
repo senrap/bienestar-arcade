@@ -7,16 +7,20 @@ import MissionPanel from './components/MissionPanel.jsx'
 import WildcardModal from './components/WildcardModal.jsx'
 import HelpModal from './components/HelpModal.jsx'
 import LevelChangeModal from './components/LevelChangeModal.jsx'
+import AuthModal from './components/AuthModal.jsx'
 import { useGame } from './hooks/useGame.js'
+import { useAuth } from './hooks/useAuth.js'
 import { play } from './lib/audio.js'
 
 export default function App() {
-  const game = useGame()
+  const { user, enviarEnlace, salir } = useAuth()
+  const game = useGame(user?.id)
   const { state, level } = game
   const [rolling, setRolling] = useState(false)
   const [wildcardOpen, setWildcardOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
   const [rechargeMode, setRechargeMode] = useState(false)
+  const [authOpen, setAuthOpen] = useState(false)
 
   const playing = state.coinInserted && !rolling
   const canRecharge = playing && state.rerollsLeft > 0 && !state.wildcardUsed
@@ -58,6 +62,13 @@ export default function App() {
 
   return (
     <AppShell
+      user={user}
+      sync={game.sync}
+      onEntrar={() => {
+        play('select')
+        setAuthOpen(true)
+      }}
+      onSalir={salir}
       muted={state.muted}
       onToggleMute={() => {
         game.setMuted(!state.muted)
@@ -106,6 +117,7 @@ export default function App() {
       )}
 
       {helpOpen && <HelpModal onClose={() => setHelpOpen(false)} />}
+      {authOpen && <AuthModal onClose={() => setAuthOpen(false)} onEnviar={enviarEnlace} />}
 
       {state.levelChange && (
         <LevelChangeModal change={state.levelChange} onClose={game.dismissLevelChange} />

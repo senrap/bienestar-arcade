@@ -72,15 +72,33 @@ barra de navegador y funciona sin conexión.
 El service worker precachea todo el build y las tipografías de Google, así que después de la primera
 visita el arranque es instantáneo y offline.
 
-## Backend (pendiente)
+## Cuentas y progreso en la nube
 
-`supabase/migrations/0001_bienestar_arcade.sql` tiene el esquema listo para cuentas, progreso en la
-nube y ranking: `profiles`, `progress`, `days`, RLS por usuario y una vista `leaderboard` que ordena
-por nivel del árbol y días sostenidos —no por puntos— y solo lista a quien se anota (`in_ranking`).
+La app funciona **sin cuenta**: el árbol vive en el navegador y no hace falta registrarse para nada.
+Con cuenta, además, el progreso sube a Supabase y se recupera en cualquier dispositivo.
+
+- **Ingreso por enlace al correo** (magic link). Sin contraseñas que recordar ni recuperar.
+- **Local primero**: se sigue guardando en LocalStorage y la nube se actualiza en segundo plano, con
+  un respiro de 1,2 s para no escribir en cada tilde. El juego nunca espera al servidor.
+- **El merge no pierde progreso**: al entrar se funde lo local con lo de la nube y gana el árbol más
+  avanzado, no el más reciente — un reloj mal puesto no debería podar el árbol de nadie. El
+  historial se une día por día quedándose con el mejor resultado de cada fecha.
+- **El día en curso es local**: las misiones de hoy se sortean en el dispositivo y ahí viven. Si
+  cambiás de teléfono a mitad del día, sacás misiones nuevas; el árbol y el historial sí viajan.
+
+### Base de datos
+
+`supabase/migrations/` tiene el esquema aplicado: `profiles`, `progress`, `days`, RLS por usuario y
+una vista `leaderboard` que ordena por nivel del árbol y días sostenidos —no por puntos— y solo
+lista a quien se anota (`in_ranking`). El email y el `user_id` nunca salen en el ranking.
 
 **Aplicar únicamente en un proyecto de Supabase dedicado.** Habilitar registro abierto en un proyecto
 compartido convierte a cualquier persona que se cree una cuenta en usuario `authenticated` de ese
 proyecto, con todo lo que las policies de las demás tablas le concedan a ese rol.
+
+La URL y la clave publicable viven en `src/lib/supabase.js` y se pueden pisar con `VITE_SUPABASE_URL`
+y `VITE_SUPABASE_KEY`. No son secretos: viajan en cada pedido del navegador y cualquiera puede
+leerlas del bundle. Lo que protege los datos es RLS, no esconder la clave.
 
 ## Stack
 
@@ -88,7 +106,9 @@ proyecto, con todo lo que las policies de las demás tablas le concedan a ese ro
 - **Tailwind CSS 4** (tokens de diseño en `@theme`, sin archivo de config)
 - **lucide-react** para los íconos
 - **vite-plugin-pwa** (Workbox) para el service worker y el manifest
-- **LocalStorage** como única persistencia (clave `bienestar-arcade:v1`)
+- **@supabase/supabase-js** para cuentas y progreso en la nube (opcional)
+- **LocalStorage** siempre (clave `bienestar-arcade:v1`), como caché y como único
+  almacenamiento cuando no hay cuenta
 
 ## Desarrollo
 
@@ -127,6 +147,9 @@ hidratación de LocalStorage.
 
 ## Pendientes post-MVP
 
+- **Ranking en pantalla**: la vista `leaderboard` y `fetchLeaderboard()` ya existen; falta la UI y el
+  interruptor para anotarse.
 - Recordatorios / notificaciones para las misiones del día.
-- Sincronización entre dispositivos (hoy todo vive en LocalStorage).
+- Correo propio (SMTP) para los enlaces de acceso: el que trae Supabase de fábrica está limitado a
+  pocos envíos por hora.
 - Modo co-op: dos árboles que crecen juntos.
