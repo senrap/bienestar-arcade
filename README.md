@@ -60,11 +60,34 @@ mueble con botones físicos que finjan hacer algo. Los clicks son clicks.
 - **Sonido**: chiptune generado en vivo con Web Audio API (ondas cuadradas + ruido filtrado), más
   vibración háptica donde el dispositivo la soporte. Se silencia desde el ícono del encabezado.
 
+## En el celular
+
+La app es una **PWA instalable**: se agrega a la pantalla de inicio, abre a pantalla completa sin
+barra de navegador y funciona sin conexión.
+
+- **Android / Chrome**: aparece un aviso "Instalar" dentro de la app.
+- **iPhone / Safari**: Compartir → *Agregar a pantalla de inicio*. Safari no ofrece botón, así que
+  la app muestra el paso a paso.
+
+El service worker precachea todo el build y las tipografías de Google, así que después de la primera
+visita el arranque es instantáneo y offline.
+
+## Backend (pendiente)
+
+`supabase/migrations/0001_bienestar_arcade.sql` tiene el esquema listo para cuentas, progreso en la
+nube y ranking: `profiles`, `progress`, `days`, RLS por usuario y una vista `leaderboard` que ordena
+por nivel del árbol y días sostenidos —no por puntos— y solo lista a quien se anota (`in_ranking`).
+
+**Aplicar únicamente en un proyecto de Supabase dedicado.** Habilitar registro abierto en un proyecto
+compartido convierte a cualquier persona que se cree una cuenta en usuario `authenticated` de ese
+proyecto, con todo lo que las policies de las demás tablas le concedan a ese rol.
+
 ## Stack
 
 - **Vite 8** + **React 19**
 - **Tailwind CSS 4** (tokens de diseño en `@theme`, sin archivo de config)
 - **lucide-react** para los íconos
+- **vite-plugin-pwa** (Workbox) para el service worker y el manifest
 - **LocalStorage** como única persistencia (clave `bienestar-arcade:v1`)
 
 ## Desarrollo
