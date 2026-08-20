@@ -7,6 +7,7 @@ const RULES = [
   ['Comodín', `Si el día vino imposible: ${WILDCARD_TASK.seconds} segundos de respiración y el nivel queda protegido.`],
   ['Subir', `${LEVEL_STEPS} días cumplidos hacen crecer el árbol un nivel.`],
   ['Bajar', 'Cada día que dejás pasar sin cumplir poda un nivel. Nunca baja de semilla.'],
+  ['En el teléfono', 'Se puede instalar como app: queda con su ícono y funciona sin conexión.'],
 ]
 
 /** Las reglas, en una pantalla. */
