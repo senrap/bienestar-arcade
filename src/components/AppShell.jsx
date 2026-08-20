@@ -1,5 +1,6 @@
 import { Volume2, VolumeX } from 'lucide-react'
 import { displayDate } from '../lib/date.js'
+import HacheFooter from './HacheFooter.jsx'
 
 /**
  * El marco. La estetica arcade queda como envoltorio —marquesina y borde—
@@ -35,6 +36,8 @@ export default function AppShell({ children, controls, muted, onToggleMute }) {
       <main className="flex flex-1 flex-col gap-4">{children}</main>
 
       {controls}
+
+      <HacheFooter />
     </div>
   )
 }

@@ -167,3 +167,54 @@
     transition-duration: 0.001ms !important;
   }
 }
+
+@layer components {
+  /* --- Firma del pie: el corredor y su salto --- */
+  @keyframes hache-walk {
+    from {
+      left: -12%;
+    }
+    to {
+      left: 112%;
+    }
+  }
+
+  @keyframes hache-hop {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    45%,
+    55% {
+      transform: translateY(-30px);
+    }
+  }
+
+  @keyframes hache-step {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-1px);
+    }
+  }
+
+  .animate-step {
+    animation: hache-step 0.22s steps(2, jump-none) infinite;
+  }
+
+  @keyframes hache-bump {
+    0%,
+    100% {
+      transform: translateX(-50%) translateY(0);
+    }
+    40% {
+      transform: translateX(-50%) translateY(-7px);
+    }
+  }
+
+  .animate-bump {
+    animation: hache-bump 0.26s ease-out 1;
+  }
+}
