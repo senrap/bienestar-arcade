@@ -30,8 +30,16 @@ export function useAuth() {
     }
   }, [])
 
-  /** Manda el enlace de acceso al correo. */
-  const enviarEnlace = useCallback(async (email) => {
+  /**
+   * Manda el codigo de acceso al correo.
+   *
+   * El mismo correo lleva un codigo de 6 digitos y un enlace. El codigo es lo
+   * que importa: una app instalada en el telefono tiene su propio almacenamiento,
+   * separado del navegador, asi que si el enlace se abre en Safari la sesion
+   * queda ahi y la app fijada sigue deslogueada. Con el codigo, el ingreso pasa
+   * entero adentro de la app.
+   */
+  const enviarCodigo = useCallback(async (email) => {
     if (!supabase) throw new Error('No hay backend configurado')
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
@@ -40,9 +48,20 @@ export function useAuth() {
     if (error) throw error
   }, [])
 
+  /** Canjea el codigo del correo por una sesion, sin salir de la app. */
+  const verificarCodigo = useCallback(async (email, codigo) => {
+    if (!supabase) throw new Error('No hay backend configurado')
+    const { error } = await supabase.auth.verifyOtp({
+      email: email.trim(),
+      token: codigo.trim(),
+      type: 'email',
+    })
+    if (error) throw error
+  }, [])
+
   const salir = useCallback(async () => {
     await supabase?.auth.signOut()
   }, [])
 
-  return { session, user: session?.user ?? null, cargando, enviarEnlace, salir }
+  return { session, user: session?.user ?? null, cargando, enviarCodigo, verificarCodigo, salir }
 }

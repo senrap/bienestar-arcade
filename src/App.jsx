@@ -13,7 +13,7 @@ import { useAuth } from './hooks/useAuth.js'
 import { play } from './lib/audio.js'
 
 export default function App() {
-  const { user, enviarEnlace, salir } = useAuth()
+  const { user, enviarCodigo, verificarCodigo, salir } = useAuth()
   const game = useGame(user?.id)
   const { state, level } = game
   const [rolling, setRolling] = useState(false)
@@ -117,7 +117,13 @@ export default function App() {
       )}
 
       {helpOpen && <HelpModal onClose={() => setHelpOpen(false)} />}
-      {authOpen && <AuthModal onClose={() => setAuthOpen(false)} onEnviar={enviarEnlace} />}
+      {authOpen && (
+        <AuthModal
+          onClose={() => setAuthOpen(false)}
+          onEnviar={enviarCodigo}
+          onVerificar={verificarCodigo}
+        />
+      )}
 
       {state.levelChange && (
         <LevelChangeModal change={state.levelChange} onClose={game.dismissLevelChange} />
