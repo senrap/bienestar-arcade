@@ -91,11 +91,16 @@ dispositivos se queda con el mayor de cada categoría.
 La app funciona **sin cuenta**: el árbol vive en el navegador y no hace falta registrarse para nada.
 Con cuenta, además, el progreso sube a Supabase y se recupera en cualquier dispositivo.
 
-- **Ingreso con código de 6 dígitos** al correo. Sin contraseñas que recordar ni recuperar.
-  El código, y no un enlace, es lo que hace que funcione en el teléfono: una app instalada tiene su
-  propio almacenamiento, separado del navegador, así que un enlace abierto en Safari crea la sesión
-  ahí y la app fijada sigue deslogueada. Con el código, el ingreso pasa entero adentro de la app.
-  Requiere que la plantilla *Magic Link* de Supabase incluya `{{ .Token }}`.
+- **Ingreso por correo sin contraseñas.** El campo acepta las dos formas: un código de 6 dígitos o
+  el enlace del correo pegado entero, del que se extrae el token y se canjea con `verifyOtp`.
+
+  Que acepte el enlace pegado no es un capricho. Una app instalada en el teléfono tiene su propio
+  almacenamiento, separado del navegador: si el enlace se *abre*, la sesión queda en Safari y la app
+  fijada sigue deslogueada para siempre. Pegándolo, el canje ocurre adentro de la app.
+
+  El código es la vía más cómoda, pero requiere editar la plantilla *Magic Link* de Supabase para
+  incluir `{{ .Token }}`, y Supabase sólo deja editar plantillas con **SMTP propio** configurado.
+  Sin SMTP, el correo de fábrica manda únicamente el enlace — y por eso el campo lo acepta.
 - **Local primero**: se sigue guardando en LocalStorage y la nube se actualiza en segundo plano, con
   un respiro de 1,2 s para no escribir en cada tilde. El juego nunca espera al servidor.
 - **El merge no pierde progreso**: al entrar se funde lo local con lo de la nube y gana el árbol más

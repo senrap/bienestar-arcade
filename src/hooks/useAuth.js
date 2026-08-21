@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase.js'
+import { esCodigo, extraerToken } from '../lib/authToken.js'
 
 /**
  * Sesion de Supabase. Sin backend configurado devuelve una sesion nula y la
@@ -48,14 +49,21 @@ export function useAuth() {
     if (error) throw error
   }, [])
 
-  /** Canjea el codigo del correo por una sesion, sin salir de la app. */
-  const verificarCodigo = useCallback(async (email, codigo) => {
+  /**
+   * Canjea por una sesion lo que haya llegado al correo, sin salir de la app:
+   * puede ser un codigo de 6 digitos o el enlace entero pegado.
+   */
+  const verificarCodigo = useCallback(async (email, valor) => {
     if (!supabase) throw new Error('No hay backend configurado')
-    const { error } = await supabase.auth.verifyOtp({
-      email: email.trim(),
-      token: codigo.trim(),
-      type: 'email',
-    })
+
+    const desdeEnlace = extraerToken(valor)
+    const { error } = desdeEnlace
+      ? await supabase.auth.verifyOtp(desdeEnlace)
+      : await supabase.auth.verifyOtp({
+          email: email.trim(),
+          token: String(valor).trim(),
+          type: 'email',
+        })
     if (error) throw error
   }, [])
 

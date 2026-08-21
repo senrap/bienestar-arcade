@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { ArrowLeft, KeyRound, Mail } from 'lucide-react'
+import { normalizarEntrada, sirveParaEntrar } from '../lib/authToken.js'
 import Modal from './Modal.jsx'
 import { play } from '../lib/audio.js'
 
@@ -10,7 +11,7 @@ const mensajeDeError = (err, contexto) => {
   if (/rate|limit|seconds|too many/i.test(texto))
     return 'Se pidieron muchos códigos seguidos. Probá de nuevo en unos minutos.'
   if (contexto === 'codigo')
-    return 'Ese código no es válido o ya venció. Revisá el correo o pedí uno nuevo.'
+    return 'Eso no sirvió: el código o el enlace ya venció, o se usó antes. Pedí uno nuevo.'
   return 'No pudimos enviar el código. Revisá el correo e intentá otra vez.'
 }
 
@@ -94,12 +95,13 @@ export default function AuthModal({ onClose, onEnviar, onVerificar }) {
               className="control w-full"
               style={{ '--ctrl-c': '#4ecdc4' }}
             >
-              {ocupado ? 'Enviando…' : 'Enviarme el código'}
+              {ocupado ? 'Enviando…' : 'Enviarme el acceso'}
             </button>
           </form>
 
           <p className="mt-4 text-xs leading-snug text-muted/70">
-            No hay contraseñas. Te llega un código de {LARGO_CODIGO} dígitos y lo escribís acá mismo.
+            No hay contraseñas. Te llega un correo y lo que traiga —un código o un enlace— lo pegás
+            acá mismo.
           </p>
         </>
       ) : (
@@ -115,15 +117,24 @@ export default function AuthModal({ onClose, onEnviar, onVerificar }) {
             <ArrowLeft size={13} aria-hidden="true" /> Cambiar el correo
           </button>
 
-          <h2 className="mt-3 text-lg font-bold text-paper">Escribí el código</h2>
+          <h2 className="mt-3 text-lg font-bold text-paper">Revisá tu correo</h2>
           <p className="mt-2 text-sm leading-relaxed text-muted">
-            Le mandamos un código de {LARGO_CODIGO} dígitos a{' '}
-            <span className="text-paper">{email}</span>. Copialo acá sin salir de la app.
+            Te escribimos a <span className="text-paper">{email}</span>. Pegá acá lo que te haya
+            llegado, sin salir de la app.
           </p>
+
+          <ul className="mt-3 flex flex-col gap-1.5 text-xs leading-snug text-muted/80">
+            <li>· Si el correo trae un código, escribí los {LARGO_CODIGO} dígitos.</li>
+            <li>
+              · Si trae un enlace, mantenelo apretado, tocá{' '}
+              <span className="text-paper">Copiar</span> y pegalo acá. No lo abras: se abriría en el
+              navegador y la sesión quedaría afuera de la app.
+            </li>
+          </ul>
 
           <form onSubmit={entrar} className="mt-5 flex flex-col gap-3">
             <label className="flex flex-col gap-1.5">
-              <span className="eyebrow text-[10px] text-muted">Código</span>
+              <span className="eyebrow text-[10px] text-muted">Código o enlace</span>
               <div className="flex items-center gap-2 rounded-lg border border-ink-700 bg-ink-950 px-3 py-2.5 focus-within:border-aqua">
                 <KeyRound size={16} className="shrink-0 text-muted" aria-hidden="true" />
                 <input
@@ -132,13 +143,14 @@ export default function AuthModal({ onClose, onEnviar, onVerificar }) {
                   autoFocus
                   inputMode="numeric"
                   autoComplete="one-time-code"
-                  pattern="[0-9]*"
                   value={codigo}
-                  onChange={(e) =>
-                    setCodigo(e.target.value.replace(/\D/g, '').slice(0, LARGO_CODIGO))
-                  }
-                  placeholder="000000"
-                  className="min-w-0 flex-1 bg-transparent font-display text-xl tracking-[0.35em] tabular-nums text-paper outline-hidden placeholder:text-muted/40"
+                  onChange={(e) => setCodigo(normalizarEntrada(e.target.value))}
+                  placeholder="000000 o pegá el enlace"
+                  className={`min-w-0 flex-1 bg-transparent text-paper outline-hidden placeholder:text-muted/40 ${
+                    codigo.length > LARGO_CODIGO
+                      ? 'truncate text-[13px]'
+                      : 'font-display text-xl tracking-[0.35em] tabular-nums'
+                  }`}
                 />
               </div>
             </label>
@@ -147,7 +159,7 @@ export default function AuthModal({ onClose, onEnviar, onVerificar }) {
 
             <button
               type="submit"
-              disabled={ocupado || codigo.length < LARGO_CODIGO}
+              disabled={ocupado || !sirveParaEntrar(codigo)}
               className="control w-full"
               style={{ '--ctrl-c': '#4ecdc4' }}
             >
