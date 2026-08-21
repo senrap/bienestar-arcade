@@ -33,11 +33,20 @@ function DayStrip({ history }) {
  * El arbol: en que nivel esta, cuanto falta para el proximo y —si ya llego
  * arriba— cuantos dias lleva sosteniendolo.
  */
-export default function LevelPanel({ level, state }) {
+export default function LevelPanel({ level, state, onAbrirPerfil }) {
   const pct = Math.round((level.progress / level.steps) * 100)
 
   return (
-    <section className="panel px-5 py-5">
+    <section
+      role="button"
+      tabIndex={0}
+      aria-label="Ver mi perfil y el ranking"
+      onClick={onAbrirPerfil}
+      onKeyDown={(e) =>
+        (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), onAbrirPerfil())
+      }
+      className="panel cursor-pointer px-5 py-5 transition-colors hover:bg-ink-850"
+    >
       <div className="flex items-center gap-5">
         <PixelSprite
           sprite={level}
@@ -96,6 +105,8 @@ export default function LevelPanel({ level, state }) {
       </dl>
 
       <DayStrip history={state.history} />
+
+      <p className="mt-3 text-center text-[11px] text-muted/60">Tocá para ver tu perfil y el ranking</p>
     </section>
   )
 }

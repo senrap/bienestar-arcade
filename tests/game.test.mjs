@@ -4,6 +4,7 @@ import {
   DAILY_MISSIONS,
   LEVEL_STEPS,
   MAX_LEVEL,
+  bumpCategory,
   closeDay,
   createState,
   demote,
@@ -163,4 +164,19 @@ test('daysBetween cuenta dias calendario', () => {
   assert.equal(daysBetween('2026-01-01', '2026-01-02'), 1)
   assert.equal(daysBetween('2026-01-01', '2026-01-01'), 0)
   assert.equal(daysBetween('2026-02-28', '2026-03-01'), 1)
+})
+
+test('el contador por categoria sube al marcar y baja al desmarcar', () => {
+  let c = {}
+  c = bumpCategory(c, 'movimiento', 1)
+  c = bumpCategory(c, 'movimiento', 1)
+  c = bumpCategory(c, 'ocular', 1)
+  assert.deepEqual(c, { movimiento: 2, ocular: 1 })
+
+  c = bumpCategory(c, 'movimiento', -1)
+  assert.equal(c.movimiento, 1)
+
+  // Nunca baja de cero, aunque llegue un desmarque de mas
+  c = bumpCategory(c, 'detox', -1)
+  assert.equal(c.detox, 0)
 })

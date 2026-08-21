@@ -72,6 +72,20 @@ barra de navegador y funciona sin conexión.
 El service worker precachea todo el build y las tipografías de Google, así que después de la primera
 visita el arranque es instantáneo y offline.
 
+## Perfil y ranking
+
+Tocando el panel del árbol se abre una segunda pantalla con dos pestañas:
+
+- **Mi árbol** — el nivel en grande con el camino completo de semilla a árbol fuerte, racha, mejor
+  racha, misiones y puntos; el desglose **por dimensión** (cuántas cumpliste de movimiento, ocular,
+  nutrición, detox y presencia, con una lectura de cuál es tu fuerte y cuál la que menos tocás); y
+  las últimas cinco semanas en cuadrícula, alineadas de domingo a sábado.
+- **Ranking** — opcional y con nombre elegido. Se ordena por nivel del árbol, después por días en la
+  cima y por racha. Nunca por puntos: lo que cuenta es sostener, no acumular. Nadie ve tu correo.
+
+El desglose por dimensión se lleva en `byCategory` y viaja a la nube como `jsonb`; el merge entre
+dispositivos se queda con el mayor de cada categoría.
+
 ## Cuentas y progreso en la nube
 
 La app funciona **sin cuenta**: el árbol vive en el navegador y no hace falta registrarse para nada.

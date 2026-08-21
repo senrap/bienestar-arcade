@@ -7,6 +7,7 @@ import MissionPanel from './components/MissionPanel.jsx'
 import WildcardModal from './components/WildcardModal.jsx'
 import HelpModal from './components/HelpModal.jsx'
 import LevelChangeModal from './components/LevelChangeModal.jsx'
+import ProfilePage from './components/ProfilePage.jsx'
 import AuthModal from './components/AuthModal.jsx'
 import { useGame } from './hooks/useGame.js'
 import { useAuth } from './hooks/useAuth.js'
@@ -21,6 +22,7 @@ export default function App() {
   const [helpOpen, setHelpOpen] = useState(false)
   const [rechargeMode, setRechargeMode] = useState(false)
   const [authOpen, setAuthOpen] = useState(false)
+  const [perfilAbierto, setPerfilAbierto] = useState(false)
 
   const playing = state.coinInserted && !rolling
   const canRecharge = playing && state.rerollsLeft > 0 && !state.wildcardUsed
@@ -75,6 +77,7 @@ export default function App() {
         if (state.muted) play('blip')
       }}
       controls={
+        perfilAbierto ? null : (
         <ControlBar
           rerollsLeft={state.rerollsLeft}
           canRecharge={canRecharge}
@@ -87,9 +90,20 @@ export default function App() {
             setHelpOpen(true)
           }}
         />
+        )
       }
     >
-      {!state.coinInserted ? (
+      {perfilAbierto ? (
+        <ProfilePage
+          state={state}
+          level={level}
+          user={user}
+          onVolver={() => {
+            play('blip', 8)
+            setPerfilAbierto(false)
+          }}
+        />
+      ) : !state.coinInserted ? (
         <AttractScreen state={state} level={level} onInsertCoin={insertCoin} />
       ) : rolling ? (
         <SlotReels missions={state.missions} onDone={() => setRolling(false)} />
@@ -102,6 +116,10 @@ export default function App() {
           rechargeMode={rechargeMode}
           onToggle={toggleAt}
           onPick={handlePick}
+          onAbrirPerfil={() => {
+            play('select')
+            setPerfilAbierto(true)
+          }}
         />
       )}
 

@@ -49,3 +49,24 @@ export function daysBetween(a, b) {
   const ms = parseKey(b).setHours(0, 0, 0, 0) - parseKey(a).setHours(0, 0, 0, 0)
   return Math.round(ms / 86400000)
 }
+
+/**
+ * Cuadricula de semanas completas terminando en la semana de hoy: devuelve
+ * `semanas * 7` claves alineadas de domingo a sabado, para que cada columna
+ * sea siempre el mismo dia de la semana. Los dias posteriores a hoy vienen
+ * marcados como futuros.
+ */
+export function weekGrid(semanas = 5, date = new Date()) {
+  const hoy = todayKey(date)
+  const inicio = new Date(date)
+  inicio.setDate(inicio.getDate() - inicio.getDay() - (semanas - 1) * 7)
+
+  const out = []
+  for (let i = 0; i < semanas * 7; i++) {
+    const d = new Date(inicio)
+    d.setDate(d.getDate() + i)
+    const key = todayKey(d)
+    out.push({ key, futuro: key > hoy })
+  }
+  return out
+}

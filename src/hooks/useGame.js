@@ -3,6 +3,7 @@ import {
   COMBO_BONUS,
   DAILY_MISSIONS,
   STORAGE_KEY,
+  bumpCategory,
   closeDay,
   completedCount,
   createState,
@@ -48,6 +49,7 @@ function reducer(state, action) {
         missions,
         points: Math.max(0, state.points + (done ? target.pts : -target.pts)),
         totalCompleted: Math.max(0, state.totalCompleted + (done ? 1 : -1)),
+        byCategory: bumpCategory(state.byCategory, target.cat, done ? 1 : -1),
       }
 
       const all = missions.filter((m) => m.done).length >= DAILY_MISSIONS

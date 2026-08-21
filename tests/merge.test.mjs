@@ -72,3 +72,13 @@ test('el dia en curso no se toca: las misiones son de este dispositivo', () => {
   assert.equal(fusion.coinInserted, true)
   assert.equal(fusion.missions.length, 1)
 })
+
+test('el desglose por categoria se une con el maximo de cada una', () => {
+  const fusion = merge(
+    arbol({ byCategory: { movimiento: 12, ocular: 3 } }),
+    arbol({ byCategory: { movimiento: 8, nutricion: 5 } }),
+  )
+  assert.equal(fusion.byCategory.movimiento, 12, 'gana el mayor')
+  assert.equal(fusion.byCategory.ocular, 3, 'se conserva lo que solo estaba local')
+  assert.equal(fusion.byCategory.nutricion, 5, 'se suma lo que solo estaba en la nube')
+})

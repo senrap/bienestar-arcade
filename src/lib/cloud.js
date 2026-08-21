@@ -18,6 +18,7 @@ const toRow = (state, userId) => ({
   best_streak: state.bestStreak,
   points: state.points,
   total_completed: state.totalCompleted,
+  by_category: state.byCategory ?? {},
   last_combo_day: state.lastComboDay,
   updated_at: new Date().toISOString(),
 })
@@ -30,6 +31,7 @@ const fromRow = (row) => ({
   bestStreak: row.best_streak,
   points: row.points,
   totalCompleted: row.total_completed,
+  byCategory: row.by_category ?? {},
   lastComboDay: row.last_combo_day,
 })
 
@@ -107,4 +109,23 @@ export async function fetchLeaderboard(limit = 20) {
     .limit(limit)
   if (error) throw error
   return data ?? []
+}
+
+/** Lee el perfil publico del usuario (nombre visible y si esta en el ranking). */
+export async function leerPerfil(userId) {
+  if (!supabase) return null
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('display_name, emoji, in_ranking')
+    .eq('id', userId)
+    .maybeSingle()
+  if (error) throw error
+  return data
+}
+
+/** Guarda el nombre visible o la decision de aparecer en el ranking. */
+export async function guardarPerfil(userId, cambios) {
+  if (!supabase) return
+  const { error } = await supabase.from('profiles').update(cambios).eq('id', userId)
+  if (error) throw error
 }

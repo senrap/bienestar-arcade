@@ -36,6 +36,15 @@ export function mergeHistory(local = {}, remote = {}) {
   return history
 }
 
+/** Une los contadores por categoria quedandose con el mayor de cada una. */
+export function mergeCategories(local = {}, remote = {}) {
+  const out = { ...local }
+  for (const [cat, n] of Object.entries(remote)) {
+    out[cat] = Math.max(out[cat] ?? 0, n ?? 0)
+  }
+  return out
+}
+
 export function merge(local, remote) {
   if (!remote) return local
   const ganador = masAvanzado(local, remote)
@@ -51,5 +60,6 @@ export function merge(local, remote) {
     bestStreak: Math.max(local.bestStreak ?? 0, remote.bestStreak ?? 0),
     lastComboDay: [local.lastComboDay, remote.lastComboDay].filter(Boolean).sort().pop() ?? null,
     history: mergeHistory(local.history, remote.history),
+    byCategory: mergeCategories(local.byCategory, remote.byCategory),
   }
 }

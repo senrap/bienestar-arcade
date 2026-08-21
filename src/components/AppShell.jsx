@@ -12,15 +12,15 @@ export default function AppShell({ children, controls, muted, onToggleMute, user
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col gap-4 px-4 py-6 sm:py-10">
       <header className="panel frame-glow px-5 py-5 sm:px-7 sm:py-6">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-xl font-bold tracking-[0.08em] text-paper sm:text-2xl">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-lg font-bold leading-tight tracking-[0.06em] text-paper sm:text-2xl sm:tracking-[0.08em]">
               BIENESTAR <span className="text-lilac">ARCADE</span>
             </h1>
-            <p className="eyebrow mt-1.5 text-muted">Hábitos diarios</p>
+            <p className="eyebrow mt-1.5 truncate text-muted">Hábitos diarios</p>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex shrink-0 items-center gap-1 sm:gap-3">
             <span className="eyebrow hidden text-muted lg:block">{displayDate()}</span>
             <AccountButton user={user} sync={sync} onEntrar={onEntrar} onSalir={onSalir} />
             <button

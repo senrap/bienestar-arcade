@@ -40,6 +40,8 @@ export function createState(day = todayKey()) {
     bestStreak: 0,
     points: 0,
     totalCompleted: 0,
+    // Misiones cumplidas por categoria: la base del perfil por dimension.
+    byCategory: {},
     lastComboDay: null,
     muted: false,
     history: {},
@@ -78,6 +80,12 @@ export function isDayComplete(state) {
 
 export function completedCount(state) {
   return state.missions.filter((m) => m.done).length
+}
+
+/** Suma o resta una mision cumplida en el contador de su categoria. */
+export function bumpCategory(byCategory, cat, delta) {
+  const actual = byCategory?.[cat] ?? 0
+  return { ...byCategory, [cat]: Math.max(0, actual + delta) }
 }
 
 /** Info del nivel actual, lista para pintar. */
@@ -196,6 +204,8 @@ export function hydrate(raw, day = todayKey()) {
   const base = { ...createState(raw.day || day), ...raw }
   base.missions = Array.isArray(base.missions) ? base.missions : []
   base.history = base.history && typeof base.history === 'object' ? base.history : {}
+  base.byCategory =
+    base.byCategory && typeof base.byCategory === 'object' ? base.byCategory : {}
   base.level = Math.min(MAX_LEVEL, Math.max(0, Number(base.level) || 0))
   base.levelProgress = Math.min(LEVEL_STEPS - 1, Math.max(0, Number(base.levelProgress) || 0))
   base.daysAtTop = Math.max(0, Number(base.daysAtTop) || 0)

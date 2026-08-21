@@ -11,10 +11,11 @@ export default function MissionPanel({
   rechargeMode,
   onToggle,
   onPick,
+  onAbrirPerfil,
 }) {
   return (
     <>
-      <LevelPanel level={level} state={state} />
+      <LevelPanel level={level} state={state} onAbrirPerfil={onAbrirPerfil} />
 
       <section className="flex flex-col gap-3">
         <div className="flex items-baseline justify-between px-1">
